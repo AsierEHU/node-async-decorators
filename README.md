@@ -1,177 +1,482 @@
-## Installation
-```bash
-npm install etl-node-fw
-```
-## Introduction
-ETL Node Framework is a tool focused on ETL best practices.
+<a name="readme-top"></a>
 
-Observability by default:
-- Data lineage
-- Traces
-- Events
-- Metrics
-- Documentation
-- Testing
+<!-- PROJECT SHIELDS -->
 
-Tools for:
-- Ensuring data quality
-- Managing bad data
-- Error handling
----
-## ETL Framework concepts
-### Entities
-Input and Ouput raw payload. The information that you want to Extract, Transform and Load.
-### Registers
-Meta information about the entities after being processed.
-Keep Sync context, data lineage and process status data.
-### Adapters
-Run the Definition about how to ETL entities.
-Each adapter produce only one Entity type.
-Can force to implement some validations to ensure data quality, error prevention and decisions about how to manage bad data.
-Can Work in "Push" or "Pull" modes.
-- "Pull Mode" (default): Adapter is in charge of obtain the input entities. 
-- "Push Mode": Adapter only obtain previously loaded entities. Used special reserved [$]AdapterId: $pushEntity
+<!-- [![Issues][issues-shield]][issues-url] -->
+[![Stargazers][stars-shield]][stars-url]
+[![MIT License][license-shield]][license-url]
+[![npm version][npm-shield]][npm-url]
+[![Contributors][contributors-shield]][contributors-url]
+[![PRs Welcome][Prs-shield]][Prs-url]
+[![Downloads][downloads-shield]][downloads-url]
 
-Types:
-- **Extractors**: Input new entities into the flow.
-- **Transformers**: Create new entities from existing entities.
-    - Row: Unique Row source needed for the output
-    - Set: One or more Sets of data needed for the output
-- **Loaders**: Save entities into the final storage. Save ouput resuls.
-### Steps
-Define how an Adapter must be ran in an specific Flow.
-Can run adapters in "Push" and "Pull" mode.
-Implements some error handling tools like retries and force to define how the flow must continue in case of not success.
-### Flows
-Define the order execution and dependencies between steps.
+<br/>
 
----
-## ETL Framework patterns
-- **Definitions**: Behaviour configuration. Acts like process documentation.
-- **Processes**: Tranform a definition into a result. Return summaraized results (monitoring).
-- **Runners**: Run Processes exposing their status changes, errors and metrics.
-- **Factories**: Create new runners by definition.
-- **DataAccess**: Interface for handling Entities and Registers
-- **presenters**: Event channels with Status and Errors information.
----
-## Examples / how it works
-See [examples](https://github.com/AsierEHU/etl-node-fw/tree/master/examples) folder.
-
----
-## Reference [WIP]
-### Architecture
-![Architecture](https://github.com/AsierEHU/etl-node-fw/blob/master/doc/Architecture.svg?raw=true)
-### Flow Example
-![Flow Example](https://github.com/AsierEHU/etl-node-fw/blob/master/doc/FlowExample.svg?raw=true)
-### Register data structure
-``` ts
-{
-    id: string //unique identifier
-    entityType: string 
-    sourceRelativeId: string | null //relative (last register source) datalineage
-    sourceAbsoluteId: string | null //absolute (first register source) datalineage
-    sourceEntityId: string | null //user custom datalineage
-    statusTag: RegisterStatusTag 
-    //- pending: register pending to be proccessed,
-    //- success: register saved with success result -> not errors, validations passed,
-    //- failed: register saved with failed result -> unexpected/software error,
-    //- invalid: register saved with invalid result -> validation not passed,
-    //- skipped: register saved with skipped result -> tagged as not necessary by definition,
-    statusMeta: RegisterMeta //extra info about the register status
-    entity: object | null, //entity
-    meta: RegisterMeta, //user custom meta
-    date: Date, //creation date
-    definitionId: string //definition  trace
-    syncContext: SyncContext //process traces (flowId,stepId,AdapterId)
-}
-```
-Special entityType reserved:
-- $flowConfig: Used for define Flow configuration
-- $setRegister: Used for define a Set of registers
-
-### Status data structure
-Adapter, Step or Flow process status entry.
-``` ts
-{
-    id: string //process unique identifier
-    definitionId: string //definition identifier
-    statusTag: ProcessStatus
-    //- pending: process pending to be proccessed,
-    //- success: process finished with success result -> not software exceptions
-    //- failed: process finished with exceptions
-    //- invalid: process tagged invalid by definition
-    statusMeta: //extra info about the process status
-    timeStarted: Date | null
-    timeFinished: Date | null
-    runOptions: any //process input params
-    syncContext: SyncContext //process traces (flowId,stepId,AdapterId)
-    processType: ProcessType //flow,step,adapter
-}
-```
-### Presenter data structure
-Adapter, Step or Flow process status event.
-``` ts
-{
-    id: string //process unique identifier
-    definitionId: string //definition identifier
-    definitionType: string //definition type
-    outputType: string //process output entity type
-    statusTag: ProcessStatus
-    //- pending: process pending to be proccessed,
-    //- success: process finished with success result -> not software exceptions
-    //- failed: process finished with exceptions
-    //- invalid: process tagged invalid by definition
-    statusMeta: //extra info about the process status
-    timeStarted: Date | null
-    timeFinished: Date | null
-    statusSummary: any, //metrics about the process
-    runOptions: any //process input params
-    syncContext: SyncContext //process traces (flowId,stepId,AdapterId)
-}
-```
----
-## Observability
-### Registers DataLineage
-![DataLineage](https://github.com/AsierEHU/etl-node-fw/blob/master/doc/DataLineage.svg?raw=true)
-### Registers reporting
-![Reporting Registers](https://github.com/AsierEHU/etl-node-fw/blob/master/doc/ReportingRegisters.svg?raw=true)
-### Processes reporting
-![Reporting Processes](https://github.com/AsierEHU/etl-node-fw/blob/master/doc/ReportingProcesses.svg?raw=true)
-
----
-## Default implementations overview
-### Adapters
-- **LocalAdapter family**: For small sets running in one local computer
-    - **LocalAdapterExtractor**: Enforce data quality and error prevention applying validators. Can apply automatic clean-up actions or tagging as "invalid" records for triage.
-    - **LocalAdapterRowTransformer**: Row by row transformation.
-    - **LocalAdapterSetTransformer**: Sets to rows transformation.
-    - **LocalAdapterLoader**: Apply output validations to check entities has been loaded correctly.
-- **LocalAdapterRunner**: Check status for local adapters. Set "failed" status in case of any adapter (not register) exception thrown.
-    - "adapterStatus" channel: for status change events.
-    - "adapterError" channel: for exceptions raised.
-### Steps
-- **LocalStep**: Retries config for failed Records and Adapters. Can define invalid status depending on the final records summary defined in the definition config.
-- **LocalStepRunner**: Check status for local steps. Sets "failed" status in case of any step exception thrown. Sets "invalid" status in case of definition invalid exception.
-    - "stepStatus" channel: for status change events.
-    - "stepError" channel: for exceptions raised.
-### Flows
-- **LocalLinealFlow**: Run steps one by one in the defined order. Can force tu use specific params in each Step, and apply an error response behavior depending of the Step sucssesfullness.
-- **LocalLinealFlowRunner**: Check status for local flows. Sets "failed" status in case of any flow exception thrown. Flow finishing with pending for run steps will be considered an exception and tagged wit status "failed". 
-    - "flowStatus" channel: for status change events.
-    - "flowError" channel: for exceptions raised.
----
-## Extensibility [WIP]
-- Developing own ETL Elements
-- Testing
----
-## Next features
-- Reporting Tool
-- Continue process from last state
-- Reference DOC
-- Document store
-- SQL store
-- Stage tables adapters
-- Process in batch (reducers)
-- Tree flows (instead of lineal)
+[![ts][ts-shield]][ts-url]
+[![tested with jest][jest-shield]][jest-url]
+[![eslint][eslint-shield]][eslint-url]
 
 
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://github.com/AsierEHU/node-async-decorators">
+    <h3 align="center">Node-Async-Decorators</h3>
+  </a>
+  <p align="center">
+    Async decorators for batching, caching, or concurrency control.
+    <br />
+    <!-- <a href="https://github.com/AsierEHU/node-async-decorators"><strong>Explore the docs »</strong></a>
+    <br /> -->
+    <!-- <br /> -->
+    <!-- <a href="https://github.com/AsierEHU/node-async-decorators">View Demo</a>
+    · -->
+    <a href="https://github.com/AsierEHU/node-async-decorators/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/AsierEHU/node-async-decorators/issues">Request Feature</a>
+  </p>
+</div>
+
+
+
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <!-- <li><a href="#about-the-project">About The Project</a></li> -->
+    <li><a href="#getting-started">Getting Started</a></li>
+    <li><a href="#batchfy">Batchfy</a></li>
+    <li><a href="#cachefy">Cachefy</a></li>
+    <li><a href="#parallelify">Parallelify</a></li>
+    <!-- <li><a href="#examples">Examples</a></li> -->
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
+
+
+
+<!-- ABOUT THE PROJECT -->
+<!-- ## About The Project
+<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
+
+
+<!-- GETTING STARTED -->
+## Getting Started
+
+  ```sh
+  npm install -S node-async-decorators
+  ```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+<!-- BATCH -->
+## Batchfy
+
+  Batching is the pattern for avoiding to call the same process until the first call has been resolved.
+  All the next calls will be included in a pool and will be resolved all together when the first call has been finished.
+  Each pool will have a unique identifier generated by the context of the call.
+  All the calls with the same context (same pool) will be included in the same batch process.
+
+  <br/>
+
+ ### Example
+
+  ```ts
+    import {batchfy} from "node-async-decorators"
+    const sum = (number1: number, number2: number) => {
+      return new Promise((resolve) => {
+          resolve(number1 + number2)
+      })
+    }
+    const batchSum = batchfy(sum)
+
+    batchSum(3, 5).then(result=>{/*8*/}) // call real sum
+    batchSum(3, 5).then(result=>{/*8*/})  // wait to real sum result
+    batchSum(4, 7).then(result=>{/*11*/})  // call real sum again because is other context
+    // ...
+    batchSum(3, 5).then(result=>{/*8*/})  // call real sum again because the first call has finished
+  ```
+
+  <br/>
+
+ ### Usage
+
+  Use batchfy directly with the default configuration.
+
+  ```ts
+  import {batchfy, batchfyObject} from "node-async-decorators"
+
+  const myBatchedAsyncFunc = batchfy(myAsyncFunc)
+
+  batchfyObject(myInstance, "myInstanceAsyncMethod") //modifies 'myInstance'.
+  ```
+
+  <br/>
+  Use batchfy directly applying custom options.
+
+  ```ts
+  import {batchfy, batchfyObject} from "node-async-decorators"
+
+  const myBatchedAsyncFunc = batchfy(myAsyncFunc, options)
+
+  batchfyObject(myInstance, "myInstanceAsyncMethod", options) //modifies 'myInstance'.
+  ```
+
+ <br/>
+  Use batchfy modifying the custom the default options.
+
+  ```ts
+  import {batchWithDefaultOptions} from "node-async-decorators"
+
+  const {batchfy,batchfyObject} = batchWithDefaultOptions(defaultOptions)
+
+  const myBatchedAsyncFunc = batchfy(myAsyncFunc, options)
+
+  batchfyObject(myInstance, "myInstanceAsyncMethod", options) //modifies 'myInstance'.
+  ```
+
+ <br/>
+  By default, these are the predefined options.
+
+  ```ts
+  import {BatchOptions} from "node-async-decorators"
+  
+  const defaultOptions: BatchOptions = {
+    /**
+     * Promises' storage.
+     */
+      storage: (): BatchStorage => {
+          return new LocalBatchStorage()
+      },
+
+    /**
+     * In case of an error couldn't be raised, this is the handler.
+     */
+      onError: (error: unknown) => {
+          console.error(error)
+      },
+
+    /**
+     * By default, all the parameters inputed in the original async function will be taken to identify a unique resquest.
+     */
+      context: (params: BatchInput): Context => {
+          return params;
+      },
+
+    /**
+     * Predefined function to generate the unique request identifier.
+     */
+      contextKey: (context: Context): Key => {
+          return hash(context)
+      },
+  }
+  ```
+
+<!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+<!-- CACHE -->
+## Cachefy
+
+  Caching is the pattern for avoiding to call the same process until the stored result has expired.
+  Each call will have a unique identifier generated by the context of the call.
+  All the calls with the same context will receive the same result generated by the first call in that context.
+
+  <br/>
+
+ ### Example
+
+  ```ts
+    import {cachefy} from "node-async-decorators"
+    const sum = (number1: number, number2: number) => {
+      return new Promise((resolve) => {
+          resolve(number1 + number2)
+      })
+    }
+    const cacheSum = cachefy(sum, { ttl: 10000 })
+
+    cacheSum(3, 5).then(result=>{/*8*/}) // call real sum
+    cacheSum(3, 5).then(result=>{/*8*/})  // wait to real sum result
+    cacheSum(4, 7).then(result=>{/*11*/})  // call real sum again because is other context
+    // ...
+    cacheSum(3, 5).then(result=>{/*8*/})  // get the result from the cache storage
+  ```
+
+  <br/>
+
+ ### Usage
+
+  Use cachefy directly with the default configuration.
+
+  ```ts
+  import {cachefy, cachefyObject} from "node-async-decorators"
+
+  const myCachedAsyncFunc = cachefy(myAsyncFunc, {ttl:1000})
+
+  cachefyObject(myInstance, "myInstanceAsyncMethod", {ttl:1000}) //modifies 'myInstance'.
+  ```
+
+  <br/>
+  Use cachefy directly applying custom options.
+
+  ```ts
+  import {cachefy, cachefyObject} from "node-async-decorators"
+
+  const myCachedAsyncFunc = cachefy(myAsyncFunc, {ttl:1000, ...options})
+
+  cachefyObject(myInstance, "myInstanceAsyncMethod", {ttl:1000, ...options}) //modifies 'myInstance'.
+  ```
+
+ <br/>
+  Use cachefy modifying the custom the default options.
+
+  ```ts
+  import {cacheWithDefaultOptions} from "node-async-decorators"
+
+  const {cachefy, cachefyObject} = cacheWithDefaultOptions({ttl:1000}, ...defaultOptions)
+
+  const myCachedAsyncFunc = cachefy(myAsyncFunc, {ttl:1000}, ...options)
+
+  cachefyObject(myInstance, "myInstanceAsyncMethod", {ttl:1000}, ...options) //modifies 'myInstance'.
+  ```
+
+ <br/>
+  By default, these are the predefined options.
+
+  ```ts
+  import {CacheOptions} from "node-async-decorators"
+  
+  const defaultOptions: CacheOptions = {
+
+    /**
+     * Time in milliseconds until the result will be expired
+     */
+      ttl: 1000,
+
+    /**
+     * Promises' storage.
+     */
+      storage: (): CacheStorage => {
+          return new LocalCacheStorage()
+      },
+
+    /**
+     * In case of an error couldn't be raised, this is the handler.
+     */
+      onError: (error: unknown) => {
+          console.error(error)
+      },
+
+    /**
+     * By default, all the parameters inputed in the original async function will be taken to identify a unique resquest.
+     */
+      context: (params: CacheInput): Context => {
+          return params;
+      },
+
+    /**
+     * Predefined function to generate the unique request identifier.
+     */
+      contextKey: (context: Context): Key => {
+          return hash(context)
+      },
+  }
+  ```
+
+<!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- PARALLEL -->
+## Parallelify
+
+  Concurrency control is the pattern for avoiding to call the same process if another is still being executed.
+  Next calls will be included in a queue an executed in order.
+  The number of calls executed in parallel will be defined by a concurrency parameter.
+  Each call will have a unique identifier generated by the context of the call.
+  All the calls with the same context will be included in the same queue.
+
+  <br/>
+
+ ### Example
+
+  ```ts
+    import {parallelify} from "node-async-decorators"
+    const sum = (number1: number, number2: number) => {
+      return new Promise((resolve) => {
+          resolve(number1 + number2)
+      })
+    }
+    const parallelSum = parallelify(sum, { concurrency: 1 })
+
+    parallelSum(3, 5).then(result=>{/*8*/}) // call real sum
+    parallelSum(3, 5).then(result=>{/*8*/})  // call real sum when the first call has finished
+    parallelSum(4, 7).then(result=>{/*11*/})  // call real sum again because is other context
+    // ...
+    parallelSum(3, 5).then(result=>{/*8*/})  // call real sum when the rest of the calls (3, 5) have been finished
+  ```
+
+  <br/>
+
+ ### Usage
+
+  Use parallelify directly with the default configuration.
+
+  ```ts
+  import {parallelify, parallelifyObject} from "node-async-decorators"
+
+  const myParallelAsyncFunc = parallelify(myAsyncFunc, {concurrency:1})
+
+  parallelifyObject(myInstance, "myInstanceAsyncMethod", {concurrency:1}) //modifies 'myInstance'.
+  ```
+
+  <br/>
+  Use parallelify directly applying custom options.
+
+  ```ts
+  import {parallelify, parallelifyObject} from "node-async-decorators"
+
+  const myParallelAsyncFunc = parallelify(myAsyncFunc, {concurrency:1, ...options})
+
+  parallelifyObject(myInstance, "myInstanceAsyncMethod", {concurrency:1, ...options}) //modifies 'myInstance'.
+  ```
+
+ <br/>
+  Use parallelify modifying the custom the default options.
+
+  ```ts
+  import {parallelWithDefaultOptions} from "node-async-decorators"
+
+  const {parallelify, parallelifyObject} = parallelWithDefaultOptions({concurrency:1}, ...defaultOptions)
+
+  const myParallelAsyncFunc = parallelify(myAsyncFunc, {concurrency:1}, ...options)
+
+  parallelifyObject(myInstance, "myInstanceAsyncMethod", {concurrency:1}, ...options) //modifies 'myInstance'.
+  ```
+
+ <br/>
+  By default, these are the predefined options.
+
+  ```ts
+  import {ParallelOptions} from "node-async-decorators"
+  
+  const defaultOptions: ParallelOptions = {
+
+    /**
+     * Number of parallel executions for the same context
+     */
+      concurrency: 1,
+
+    /**
+     * Promises' storage.
+     */
+      storage: (): TaskQueueRunnerStorage => {
+          return new LocalTaskQueueRunnerStorage()
+      },
+
+    /**
+     * In case of an error couldn't be raised, this is the handler.
+     */
+      onError: (error: unknown) => {
+          console.error(error)
+      },
+
+    /**
+     * By default, all the parameters inputed in the original async function will be taken to identify a unique resquest.
+     */
+      context: (params: ParallelInput): Context => {
+          return params;
+      },
+
+    /**
+     * Predefined function to generate the unique request identifier.
+     */
+      contextKey: (context: Context): Key => {
+          return hash(context)
+      },
+  }
+  ```
+
+<!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+<!-- 
+## Examples
+
+- Ejemplos de cosillas que podrías hacer
+    - Execute once
+    - Async iterator
+    - Cache with redis
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
+
+
+<!-- CONTRIBUTING -->
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- LICENSE -->
+## License
+
+Distributed under the MIT License. See `LICENSE.txt` for more information.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+<!-- ACKNOWLEDGMENTS -->
+## Acknowledgments
+
+* [Best README Template](https://github.com/othneildrew/Best-README-Template)
+* [Node.js Design Patterns](https://www.nodejsdesignpatterns.com/)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- Project -->
+[contributors-shield]: https://img.shields.io/github/contributors/AsierEHU/node-async-decorators.svg?style=for-the-badge
+[contributors-url]: https://github.com/AsierEHU/node-async-decorators/graphs/contributors
+[stars-shield]: https://img.shields.io/github/stars/AsierEHU/node-async-decorators.svg?style=for-the-badge
+[stars-url]: https://github.com/AsierEHU/node-async-decorators/stargazers
+<!-- [issues-shield]: https://img.shields.io/github/issues/AsierEHU/node-async-decorators.svg?style=for-the-badge
+[issues-url]: https://github.com/AsierEHU/node-async-decorators/issues -->
+[license-shield]: https://img.shields.io/github/license/AsierEHU/node-async-decorators.svg?style=for-the-badge
+[license-url]: https://github.com/AsierEHU/node-async-decorators/blob/master/LICENSE.txt
+[npm-shield]: https://img.shields.io/npm/v/node-async-decorators.svg?style=for-the-badge
+[npm-url]: https://www.npmjs.com/package/node-async-decorators
+[PRs-shield]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge
+[PRs-url]: https://github.com/AsierEHU/node-async-decorators/README.md#contributing
+[downloads-shield]: https://img.shields.io/npm/dm/node-async-decorators.svg?style=for-the-badge
+[downloads-url]: https://www.npmjs.com/package/node-async-decorators
+
+<!-- Built-in -->
+[ts-shield]: https://shields.io/badge/TypeScript-3178C6?logo=TypeScript&logoColor=FFF&style=for-the-badge
+[ts-url]: https://www.typescriptlang.org/
+[jest-shield]: https://shields.io/badge/Jest-99424F?logo=Jest&style=for-the-badge
+[jest-url]: https://github.com/facebook/jest
+[eslint-shield]: https://shields.io/badge/Eslint-7734EB?logo=eslint&style=for-the-badge
+[eslint-url]: https://eslint.org/
