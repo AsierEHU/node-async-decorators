@@ -1,5 +1,5 @@
 import hasher from 'node-object-hash';
-const hashSortCoerce = hasher({ coerce: false });
+const hashSortCoerce = hasher({ coerce: false, sort: false });
 
 export function hash(context: Context): Key {
     const key = hashSortCoerce.hash(context)

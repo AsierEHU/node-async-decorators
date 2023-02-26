@@ -12,8 +12,8 @@ describe("Cache Test (Default config)", () => {
     test("Cached function returns expected right results", async () => {
         const resultReal = await mockFunction(rn1, rn2)
         const func = cachefy(mockFunction)
-        const resultBatched = await func(rn1, rn2)
-        expect(resultBatched).toEqual(resultReal)
+        const resultCached = await func(rn1, rn2)
+        expect(resultCached).toEqual(resultReal)
     })
 
     test("Cached function returns expected exception results", async () => {
@@ -24,13 +24,13 @@ describe("Cache Test (Default config)", () => {
         } catch (e) {
             errorReal = e
         }
-        let errorBatched: unknown = null;
+        let errorCached: unknown = null;
         try {
             await func(rn1, rn2)
         } catch (e) {
-            errorBatched = e
+            errorCached = e
         }
-        expect(errorBatched).toEqual(errorReal)
+        expect(errorCached).toEqual(errorReal)
     })
 
     test("Original function is only called once (for the same context) until the promise has been resolved", async () => {

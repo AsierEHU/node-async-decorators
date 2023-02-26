@@ -48,7 +48,7 @@
     <li><a href="#batchfy">Batchfy</a></li>
     <li><a href="#cachefy">Cachefy</a></li>
     <li><a href="#parallelify">Parallelify</a></li>
-    <!-- <li><a href="#examples">Examples</a></li> -->
+    <li><a href="#utils">Utils</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
@@ -409,15 +409,45 @@
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-<!-- 
-## Examples
 
-- Ejemplos de cosillas que podrías hacer
-    - Execute once
-    - Async iterator
-    - Cache with redis
+## Utils
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
+Some utils derived from this library main functionalities.
+
+### Execute once
+
+Will execute the async function once under the same context.
+Context is composed by an array.
+Target sum funcion parameters do not count for the context.
+
+```ts
+  import {buildOnce} from "node-async-decorators"
+
+  const sum = (number1: number, number2: number) => {
+    return new Promise((resolve) => {
+        resolve(number1 + number2)
+    })
+  }
+
+  const once = buildOnce()
+
+  once(
+    ()=>sum(2,5),
+    ["context-1"]
+  ).then(result=>{/*7*/}) // call real sum
+
+  once(
+    ()=>sum(2,5),
+    ["context-1"]
+  ).then(result=>{/*7*/}) // return the same result for the context  ["context-1"] without calling real sum function again
+
+  once(
+    ()=>sum(2,5),
+    ["context-2"]
+  ).then(result=>{/*7*/}) // call real sum again because the context is different ["context-2"]
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 <!-- CONTRIBUTING -->
