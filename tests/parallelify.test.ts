@@ -1,6 +1,6 @@
 import { parallelWithDefaultOptions } from "../src/parallelify"
 import { LocalTaskQueueRunnerStorage } from "../src/parallelify/dataAccess/taskQueueRunnerStorage"
-import { uniqueNumber, mockFunction, mockErrorFunction, mockNoParamsUniqueFunction, mockObject } from "./utils"
+import { uniqueNumber, mockFunction, mockErrorFunction, mockNoParamsUniqueFunction, mockObject, ParallelCounter } from "./utils"
 
 describe("Parallel Test (Default config)", () => {
 
@@ -69,81 +69,35 @@ describe("Parallel Test (Default config)", () => {
     })
 
     test("Original function is being called one by one (concurrency 1, same context)", async () => {
-        function* getNextValue() {
-            yield 0;
-            yield 2;
-            yield 4;
-            yield 6;
-        }
-        const gen = getNextValue()
-
-        const finalizationTests: Promise<any>[] = []
-        const mockFunctionWrap = (rn1: number, rn2: number) => {
-            const originalPromise = mockFunction(rn1, rn2)
-            const testPromise = originalPromise.then((value) => {
-                const nextValue: number = gen.next().value as number
-                expect(value).toEqual(nextValue)
-            })
-            finalizationTests.push(testPromise)
-            return originalPromise
-        }
-
-        const spyedFunction = jest.fn(mockFunctionWrap)
-        const func = parallelify(spyedFunction, { contextKey: () => "test" })
+        const parallelCounter = new ParallelCounter();
+        const mockFunctionWrap = parallelCounter.wrapFunction(mockFunction);
+        const func = parallelify(mockFunctionWrap, { contextKey: () => "test" })
         await Promise.all([func(0, 0), func(1, 1), func(2, 2), func(3, 3)])
-        await Promise.all(finalizationTests)
+        expect(parallelCounter.getParallelCount()).toBe(1)
     })
 
-    test("Original function is being called one by one for each context (concurrency 1)", async () => {
-        function* getNextValue() {
-            yield 1;
-            yield 1;
-            yield 2;
-            yield 2;
-            yield 3;
-        }
-        const gen = getNextValue()
+    test("Original function is being called two by two (concurrency 2, same context)", async () => {
+        const parallelCounter = new ParallelCounter();
+        const mockFunctionWrap = parallelCounter.wrapFunction(mockFunction);
+        const func = parallelify(mockFunctionWrap, { contextKey: () => "test", concurrency: 2 })
+        await Promise.all([func(0, 0), func(1, 1), func(2, 2), func(3, 3)])
+        expect(parallelCounter.getParallelCount()).toBe(2)
+    })
 
-        const finalizationTests: Promise<any>[] = []
-        const mockFunctionWrap = (rn1: number, rn2: number) => {
-            const originalPromise = mockFunction(rn1, rn2)
-            const testPromise = originalPromise.then((value) => {
-                const nextValue: number = gen.next().value as number
-                expect(value).toEqual(nextValue)
-            })
-            finalizationTests.push(testPromise)
-            return originalPromise
-        }
-
-        const spyedFunction = jest.fn(mockFunctionWrap)
-        const func = parallelify(spyedFunction, { context: (params) => params[0] })
+    test("Original function is being called one by one for each context (concurrency 1, 2 contexts)", async () => {
+        const parallelCounter = new ParallelCounter();
+        const mockFunctionWrap = parallelCounter.wrapFunction(mockFunction);
+        const func = parallelify(mockFunctionWrap, { context: (params) => params[0] })
         await Promise.all([func(0, 1), func(0, 2), func(0, 3), func(1, 0), func(1, 1)])
-        await Promise.all(finalizationTests)
+        expect(parallelCounter.getParallelCount()).toBe(2)
     })
 
     test("All the functions work in parallel in the same context if concurrency >= the number of functions", async () => {
-        function* getNextValue() {
-            yield 3;
-            yield 3;
-            yield 3;
-        }
-        const gen = getNextValue()
-
-        const finalizationTests: Promise<any>[] = []
-        const mockFunctionWrap = (rn1: number, rn2: number) => {
-            const originalPromise = mockFunction(rn1, rn2)
-            const testPromise = originalPromise.finally(() => {
-                const nextValue: number = gen.next().value as number
-                expect(spyedFunction).toBeCalledTimes(nextValue)
-            })
-            finalizationTests.push(testPromise)
-            return originalPromise
-        }
-
-        const spyedFunction = jest.fn(mockFunctionWrap)
-        const func = parallelify(spyedFunction, { contextKey: () => "test", concurrency: 3 })
+        const parallelCounter = new ParallelCounter();
+        const mockFunctionWrap = parallelCounter.wrapFunction(mockFunction);
+        const func = parallelify(mockFunctionWrap, { contextKey: () => "test", concurrency: 3 })
         await Promise.all([func(0, 0), func(1, 1), func(2, 2)])
-        await Promise.all(finalizationTests)
+        expect(parallelCounter.getParallelCount()).toBe(3)
     })
 
     test("Storage remove all it's taskRunners when the queue has been finalished", async () => {

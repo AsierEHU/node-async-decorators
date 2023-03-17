@@ -1,5 +1,5 @@
 import { Context, Key, hash, configBuilder, proxifyObject } from "../common/business/util";
-import { ParallelConfiguration, ParallelFunc, ParallelInput, TaskQueueRunnerStorage, parallelify as baseParallelfy } from "./business/parallelify";
+import { ParallelConfiguration, ParallelFunc, ParallelInput, TaskQueueRunnerStorage, parallelify as baseParallelify } from "./business/parallelify";
 import { LocalTaskQueueRunnerStorage } from "./dataAccess/taskQueueRunnerStorage";
 
 export type ParallelOptions = Partial<ParallelConfiguration>
@@ -25,7 +25,7 @@ export const parallelWithRequiredOptions = () => {
 
     function parallelify<T extends ParallelFunc>(asyncFunc: T, options: ParallelOptionsRequired) {
         const conf = configBuilder(options, defaultParallelConfiguration)
-        return baseParallelfy(asyncFunc, conf)
+        return baseParallelify(asyncFunc, conf)
     }
 
     function parallelifyObject<T extends object>(target: T, methodName: keyof T, options: ParallelOptionsRequired) {
@@ -47,7 +47,7 @@ export const parallelWithDefaultOptions = (options: ParallelOptionsRequired) => 
 
     function parallelify<T extends ParallelFunc>(asyncFunc: T, options?: ParallelOptions) {
         const conf = configBuilder(options, defaultOptions)
-        return baseParallelfy(asyncFunc, conf)
+        return baseParallelify(asyncFunc, conf)
     }
 
     function parallelifyObject<T extends object>(target: T, methodName: keyof T, options?: ParallelOptions) {

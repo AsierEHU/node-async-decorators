@@ -45,16 +45,15 @@ export class TaskQueueRunner {
     }
 
     private async runNextTasks() {
-        while (this.runningPromises < this.concurrency) {
-            const task = this.taskQueue.shift()
-            if (task === undefined) {
-                this.onFinished().catch(() => { return })
-                return;
-            }
+        while (this.runningPromises < this.concurrency && this.taskQueue.length) {
+            const task = this.taskQueue.shift() as Task
             const promise = task()
             promise.finally(() => {
                 this.runningPromises--
-                this.runNextTasks()
+                if (this.taskQueue.length)
+                    this.runNextTasks()
+                else
+                    this.onFinished().catch(() => { return })
             }).catch(() => { return })
             this.runningPromises++
         }

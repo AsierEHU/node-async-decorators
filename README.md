@@ -126,7 +126,7 @@
   ```
 
  <br/>
-  Use batchfy modifying the custom the default options.
+  Use batchfy modifying the the default configuration.
 
   ```ts
   import {batchWithDefaultOptions} from "node-async-decorators"
@@ -139,7 +139,7 @@
   ```
 
  <br/>
-  By default, these are the predefined options.
+  By default, this is the default configuration.
 
   ```ts
   import {BatchOptions} from "node-async-decorators"
@@ -233,7 +233,7 @@
   ```
 
  <br/>
-  Use cachefy modifying the custom the default options.
+  Use cachefy modifying the the default configuration.
 
   ```ts
   import {cacheWithDefaultOptions} from "node-async-decorators"
@@ -246,7 +246,7 @@
   ```
 
  <br/>
-  By default, these are the predefined options.
+  By default, this is the default configuration.
 
   ```ts
   import {CacheOptions} from "node-async-decorators"
@@ -349,7 +349,7 @@
   ```
 
  <br/>
-  Use parallelify modifying the custom the default options.
+  Use parallelify modifying the the default configuration.
 
   ```ts
   import {parallelWithDefaultOptions} from "node-async-decorators"
@@ -362,7 +362,7 @@
   ```
 
  <br/>
-  By default, these are the predefined options.
+  By default, this is the default configuration.
 
   ```ts
   import {ParallelOptions} from "node-async-decorators"
@@ -418,7 +418,7 @@ Some utils derived from this library main functionalities.
 
 Will execute the async function once under the same context.
 Context is composed by an array.
-Target sum funcion parameters do not count for the context.
+Target sum function parameters do not count for the context.
 
 ```ts
   import {buildOnce} from "node-async-decorators"
@@ -445,6 +445,35 @@ Target sum funcion parameters do not count for the context.
     ()=>sum(2,5),
     ["context-2"]
   ).then(result=>{/*7*/}) // call real sum again because the context is different ["context-2"]
+```
+
+### Execute in parallel
+
+Will execute an array of async tasks/functions.
+The number of tasks executed in parallel will be defined by a concurrency parameter.
+The result will be an array containing all the results in the same order of the tasks/functions. Similar to Promise.all result.
+
+```ts
+  import {executeInParallel} from "node-async-decorators"
+
+  const sum = (number1: number, number2: number) => {
+    return new Promise((resolve) => {
+        resolve(number1 + number2)
+    })
+  }
+
+  const concurrency = 2;
+
+  const tasks = [
+      () => sum(1, 2), //First execution
+      () => sum(2, 3), //First execution
+      () => sum(3, 4), //Second execution
+      () => sum(4, 5), //Second execution
+      () => sum(5, 6), //Third execution
+  ]
+
+  const results = await executeInParallel(tasks, concurrency) // [3,5,7,9,11]
+
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

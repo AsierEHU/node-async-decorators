@@ -16,6 +16,35 @@ export function uniqueNumber() {
     return count++
 }
 
+export class ParallelCounter {
+
+    private activeFunctions: number;
+    private readonly activeFunctionsHistorical: number[];
+
+    constructor() {
+        this.activeFunctions = 0;
+        this.activeFunctionsHistorical = []
+    }
+
+    public wrapFunction(asyncFunc: any) {
+        const wrap = (...params: any[]) => {
+            const originalPromise = asyncFunc(...params)
+            this.activeFunctions++;
+            this.activeFunctionsHistorical.push(this.activeFunctions)
+            originalPromise.then(() => {
+                this.activeFunctions--;
+                this.activeFunctionsHistorical.push(this.activeFunctions)
+            })
+            return originalPromise
+        }
+        return wrap
+    }
+
+    public getParallelCount() {
+        return Math.max(...this.activeFunctionsHistorical)
+    }
+}
+
 
 /**
  * Mocks
