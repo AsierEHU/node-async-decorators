@@ -1,12 +1,12 @@
 import { GenericAsyncFunction } from "../../common/business/util"
 
-export async function executeInBatch(asyncFunctions: GenericAsyncFunction<void, any>[], batchNumber: number) {
-    if (batchNumber <= 0)
-        throw new Error("batchNumber must be a positive integer")
+export async function executeInBatch(asyncFunctions: GenericAsyncFunction<void, any>[], batchSize: number) {
+    if (batchSize <= 0)
+        throw new Error("batchSize must be a positive integer")
 
     const chunks = [];
-    for (let i = 0; i < asyncFunctions.length; i += batchNumber) {
-        const chunk = asyncFunctions.slice(i, i + batchNumber);
+    for (let i = 0; i < asyncFunctions.length; i += batchSize) {
+        const chunk = asyncFunctions.slice(i, i + batchSize);
         chunks.push(chunk)
     }
 

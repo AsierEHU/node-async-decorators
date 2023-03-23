@@ -36,24 +36,29 @@
     <a href="https://github.com/AsierEHU/node-async-decorators/issues">Request Feature</a>
   </p>
 </div>
-
+<br />
 
 
 <!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <!-- <li><a href="#about-the-project">About The Project</a></li> -->
-    <li><a href="#getting-started">Getting Started</a></li>
-    <li><a href="#batchfy">Batchfy</a></li>
-    <li><a href="#cachefy">Cachefy</a></li>
-    <li><a href="#parallelify">Parallelify</a></li>
-    <li><a href="#utils">Utils</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
+### Table of Contents
+<ul>
+  <!-- <li><a href="#about-the-project">About The Project</a></li> -->
+  <li><a href="#getting-started">Getting Started</a></li>
+  <li><a href="#batchfy">Batchfy</a></li>
+  <li><a href="#cachefy">Cachefy</a></li>
+  <li><a href="#parallelify">Parallelify</a></li>
+  <li><a href="#utils">Utils</a>
+    <ul>
+      <li><a href="#execute-once">Execute once</li>
+      <li><a href="#execute-in-parallel">Execute in parallel</li>
+      <li><a href="#execute-in-batch">Execute in batch</li>
+    </ul>
+  </li>
+  <li><a href="#contributing">Contributing</a></li>
+  <li><a href="#license">License</a></li>
+  <li><a href="#acknowledgments">Acknowledgments</a></li>
+</ul>
+<br/><br/>
 
 
 
@@ -465,14 +470,45 @@ The result will be an array containing all the results in the same order of the 
   const concurrency = 2;
 
   const tasks = [
-      () => sum(1, 2), //First execution
-      () => sum(2, 3), //First execution
-      () => sum(3, 4), //Second execution
-      () => sum(4, 5), //Second execution
-      () => sum(5, 6), //Third execution
+      () => sum(1, 2), //First execution. Running tasks 1
+      () => sum(2, 3), //Second execution. Running tasks 2
+      () => sum(3, 4), //Third execution. Running tasks 2 (one of the last executions has finished)
+      () => sum(4, 5), //Fourth execution. Running tasks 2 (one of the last executions has finished)
+      () => sum(5, 6), //Fifth execution. Running tasks 2 (one of the last executions has finished)
   ]
 
   const results = await executeInParallel(tasks, concurrency) // [3,5,7,9,11]
+
+```
+
+### Execute in batch
+
+Will execute an array of async tasks/functions.
+The array will be splitted into sub-arrays. The number of tasks in each sub-array is defined by parameters.
+All the tasks inside each sub-array will be executed all together. 
+The next batch will start when the last has been finished.
+The result will be an array containing all the results in the same order of the tasks/functions. Similar to Promise.all result.
+
+```ts
+  import {executeInBatch} from "node-async-decorators"
+
+  const sum = (number1: number, number2: number) => {
+    return new Promise((resolve) => {
+        resolve(number1 + number2)
+    })
+  }
+
+  const batchSize = 2;
+
+  const tasks = [
+      () => sum(1, 2), //First execution
+      () => sum(2, 3), //First execution
+      () => sum(3, 4), //Second execution (First batch has finished)
+      () => sum(4, 5), //Second execution (First batch has finished)
+      () => sum(5, 6), //Third execution (Second batch has finished)
+  ]
+
+  const results = await executeInBatch(tasks, batchSize) // [3,5,7,9,11]
 
 ```
 

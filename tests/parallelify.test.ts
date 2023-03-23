@@ -82,6 +82,7 @@ describe("Parallel Test (Default config)", () => {
         const func = parallelify(mockFunctionWrap, { contextKey: () => "test", concurrency: 2 })
         await Promise.all([func(0, 0), func(1, 1), func(2, 2), func(3, 3)])
         expect(parallelCounter.getParallelCount()).toBe(2)
+        expect(parallelCounter.getParallelFlow()).toStrictEqual([1, 2, 1, 2, 1, 2, 1, 0])
     })
 
     test("Original function is being called one by one for each context (concurrency 1, 2 contexts)", async () => {
@@ -90,6 +91,7 @@ describe("Parallel Test (Default config)", () => {
         const func = parallelify(mockFunctionWrap, { context: (params) => params[0] })
         await Promise.all([func(0, 1), func(0, 2), func(0, 3), func(1, 0), func(1, 1)])
         expect(parallelCounter.getParallelCount()).toBe(2)
+        expect(parallelCounter.getParallelFlow()).toStrictEqual([1, 2, 1, 2, 1, 2, 1, 2, 1, 0])
     })
 
     test("All the functions work in parallel in the same context if concurrency >= the number of functions", async () => {
@@ -98,6 +100,7 @@ describe("Parallel Test (Default config)", () => {
         const func = parallelify(mockFunctionWrap, { contextKey: () => "test", concurrency: 3 })
         await Promise.all([func(0, 0), func(1, 1), func(2, 2)])
         expect(parallelCounter.getParallelCount()).toBe(3)
+        expect(parallelCounter.getParallelFlow()).toStrictEqual([1, 2, 3, 2, 1, 0])
     })
 
     test("Storage remove all it's taskRunners when the queue has been finalished", async () => {

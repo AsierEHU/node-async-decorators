@@ -2,7 +2,7 @@ import { cachefy } from "../../cachefy";
 import { GenericAsyncFunction, ArrayType } from "../../common/business/util"
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function buildOnceAdapter(asyncFunction: GenericAsyncFunction<void, any>, context: ArrayType) {
+function buildOnceAdapter(asyncFunction: GenericAsyncFunction<void, any>, context: ArrayType) {
     return asyncFunction()
 }
 

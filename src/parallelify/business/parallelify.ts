@@ -30,11 +30,11 @@ export class TaskQueueRunner {
     private readonly taskQueue: Task[] = []
     private runningPromises = 0
     private readonly concurrency: number
-    private readonly onFinished: () => Promise<void>
+    private readonly onFinished: () => void
 
     constructor(
         { concurrency, onFinished }:
-            { concurrency: number, onFinished: () => Promise<void> }) {
+            { concurrency: number, onFinished: () => void }) {
         this.concurrency = concurrency
         this.onFinished = onFinished
     }
@@ -53,7 +53,7 @@ export class TaskQueueRunner {
                 if (this.taskQueue.length)
                     this.runNextTasks()
                 else
-                    this.onFinished().catch(() => { return })
+                    this.onFinished()
             }).catch(() => { return })
             this.runningPromises++
         }
@@ -75,7 +75,7 @@ export function parallelify<T extends ParallelFunc>(asyncFunc: T, conf: Parallel
             key,
             [{
                 concurrency: conf.concurrency,
-                onFinished: async () => {
+                onFinished: () => {
                     try {
                         storage.delete(key)
                     }

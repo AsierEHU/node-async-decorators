@@ -1,4 +1,4 @@
-import { buildOnce, executeInParallel } from "../src/utils"
+import { buildOnce, executeInBatch, executeInParallel } from "../src/utils"
 import { uniqueNumber, mockFunction, mockErrorFunction, ParallelCounter } from "./utils"
 
 describe("Execute once Test", () => {
@@ -111,7 +111,7 @@ describe("Execute in parallel Test", () => {
         expect(error).toEqual(errorReal)
     })
 
-    test("The max number of running tasks is 2 at the same time", async () => {
+    test("The max number of running tasks at the same time is 2", async () => {
         const parallelCounter = new ParallelCounter();
         const mockFunctionWrap = parallelCounter.wrapFunction(mockFunction);
         const tasks = [
@@ -123,5 +123,68 @@ describe("Execute in parallel Test", () => {
         ]
         await executeInParallel(tasks, 2)
         expect(parallelCounter.getParallelCount()).toBe(2)
+        expect(parallelCounter.getParallelFlow()).toStrictEqual([1, 2, 1, 2, 1, 2, 1, 2, 1, 0])
+    })
+})
+
+describe("Execute in batch Test", () => {
+
+    const rn1 = uniqueNumber()
+    const rn2 = uniqueNumber()
+    const rn3 = uniqueNumber()
+
+    test("Execute in batch function returns expected right results", async () => {
+        const tasks = [() => mockFunction(rn1, rn2), () => mockFunction(rn1, rn2)]
+        const resultReal = await Promise.all(tasks.map(task => task()))
+        const result = await executeInBatch(tasks, 2)
+        expect(result).toEqual(resultReal)
+    })
+
+    test("Execute in batch function returns expected exception results", async () => {
+        const tasks = [() => mockFunction(rn1, rn2), () => mockErrorFunction(rn1, rn2)]
+        let errorReal: unknown = null;
+        try {
+            await Promise.all(tasks.map(task => task()))
+        } catch (e) {
+            errorReal = e
+        }
+        let error: unknown = null;
+        try {
+            await executeInBatch(tasks, 2)
+        } catch (e) {
+            error = e
+        }
+        expect(error).toEqual(errorReal)
+    })
+
+    test("The max number of running tasks is 2 at the same time", async () => {
+        const parallelCounter = new ParallelCounter();
+        const mockFunctionWrap = parallelCounter.wrapFunction(mockFunction);
+        const tasks = [
+            () => mockFunctionWrap(rn1, rn2),
+            () => mockFunctionWrap(rn1, rn2),
+            () => mockFunctionWrap(rn1, rn3),
+            () => mockFunctionWrap(rn2, rn2),
+            () => mockFunctionWrap(rn2, rn3),
+        ]
+        await executeInBatch(tasks, 2)
+        expect(parallelCounter.getParallelCount()).toBe(2)
+        expect(parallelCounter.getParallelFlow()).toStrictEqual([1, 2, 1, 0, 1, 2, 1, 0, 1, 0])
+    })
+
+    test("Return an error if receives a negative concurrency parameter", async () => {
+        const parallelCounter = new ParallelCounter();
+        const mockFunctionWrap = parallelCounter.wrapFunction(mockFunction);
+        const tasks = [
+            () => mockFunctionWrap(rn1, rn2),
+            () => mockFunctionWrap(rn1, rn2),
+        ]
+        let error: unknown = null;
+        try {
+            await executeInBatch(tasks, -2)
+        } catch (e) {
+            error = e
+        }
+        expect(error).not.toBe(null)
     })
 })

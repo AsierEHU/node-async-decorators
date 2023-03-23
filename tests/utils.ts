@@ -31,7 +31,7 @@ export class ParallelCounter {
             const originalPromise = asyncFunc(...params)
             this.activeFunctions++;
             this.activeFunctionsHistorical.push(this.activeFunctions)
-            originalPromise.then(() => {
+            originalPromise.finally(() => {
                 this.activeFunctions--;
                 this.activeFunctionsHistorical.push(this.activeFunctions)
             })
@@ -42,6 +42,10 @@ export class ParallelCounter {
 
     public getParallelCount() {
         return Math.max(...this.activeFunctionsHistorical)
+    }
+
+    public getParallelFlow() {
+        return [...this.activeFunctionsHistorical]
     }
 }
 
