@@ -324,6 +324,7 @@ As redis is a shared DB, by default the `RedisCacheStorage` object will create a
 <br/>
 
 ```ts
+import { createClient } from "redis";
 import {
   cacheWithDefaultOptions,
   RedisCacheStorage,
@@ -336,12 +337,8 @@ const redisClient = createClient({
     port: Number(process.env.REDIS_PORT) || 6379,
   },
 });
-redisClient.on("connect", () => {
-  console.log("Connected to our redis instance!");
-});
-redisClient.on("error", (err: any) => {
-  console.error("Redis Client Error", err);
-});
+
+await redisClient.connect();
 
 const { cachefy, cachefyObject } = cacheWithDefaultOptions({
   ttl: 1000,
@@ -355,6 +352,8 @@ const { cachefy, cachefyObject } = cacheWithDefaultOptions({
 const myCachedAsyncFunc = cachefy(myAsyncFunc, { ttl: 1000 }, ...options);
 
 cachefyObject(myInstance, "myInstanceAsyncMethod", { ttl: 1000 }, ...options); //modifies 'myInstance'.
+
+await redisClient.disconnect();
 ```
 
 <!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
