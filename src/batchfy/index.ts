@@ -1,4 +1,9 @@
-import { batchWithRequiredOptions, batchWithDefaultOptions, BatchOptions, BatchOptionsRequired } from "./batchFactory";
+import {
+  batchWithRequiredOptions,
+  batchWithDefaultOptions,
+  BatchOptions,
+  BatchOptionsRequired,
+} from "./batchFactory";
 
-export const { batchfy, batchfyObject } = batchWithRequiredOptions()
-export { batchWithDefaultOptions, BatchOptions, BatchOptionsRequired }
+export const { batchfy, batchfyObject } = batchWithRequiredOptions();
+export { batchWithDefaultOptions, BatchOptions, BatchOptionsRequired };

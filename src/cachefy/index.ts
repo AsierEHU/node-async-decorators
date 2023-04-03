@@ -1,6 +1,13 @@
-import { cacheWithRequiredOptions, cacheWithDefaultOptions, CacheOptions, CacheOptionsRequired } from "./cacheFactory";
+import {
+  cacheWithRequiredOptions,
+  cacheWithDefaultOptions,
+  CacheOptions,
+  CacheOptionsRequired,
+} from "./cacheFactory";
 
-export const { cachefy, cachefyObject } = cacheWithRequiredOptions()
-export { cacheWithDefaultOptions, CacheOptions, CacheOptionsRequired }
+export const { cachefy, cachefyObject } = cacheWithRequiredOptions();
+export { cacheWithDefaultOptions, CacheOptions, CacheOptionsRequired };
 
-export { CacheStorage } from "./business/cachefy"
+export { CacheStorage } from "./business/cachefy";
+
+export { RedisCacheStorage } from "./dataAccess/redisCacheStorage";
