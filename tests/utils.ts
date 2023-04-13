@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import { createClient } from "redis";
+import { proxifyObject } from "../src/common/business/util";
 
 /**
  * Utils
@@ -43,6 +44,12 @@ export class ParallelCounter {
       return originalPromise;
     };
     return wrap;
+  }
+
+  public wrapObject<T extends object>(target: T, methodName: keyof T) {
+    return proxifyObject(target, methodName, (asyncFunc) => {
+      return this.wrapFunction(asyncFunc);
+    });
   }
 
   public getParallelCount() {

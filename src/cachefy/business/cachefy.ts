@@ -36,7 +36,7 @@ export function cachefy<T extends CacheFunc>(
 ): T {
   const cacheStorage = conf.storage();
 
-  let cachefyedFunction = async function (...params) {
+  const cachefyedFunction = async function (...params) {
     const context = conf.context(params);
     const key = conf.contextKey(context);
 
@@ -58,10 +58,11 @@ export function cachefy<T extends CacheFunc>(
     return promise;
   } as T;
 
-  cachefyedFunction = batchfy(cachefyedFunction, {
+  const batchfyedCachefyedFunction = batchfy(cachefyedFunction, {
     context: conf.context,
     contextKey: conf.contextKey,
-  }); //TODO: How to inject key? option like share key?
+    onError: conf.onError,
+  });
 
-  return cachefyedFunction;
+  return batchfyedCachefyedFunction;
 }

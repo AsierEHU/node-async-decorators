@@ -67,14 +67,13 @@ describe("Parallel Test (Default config)", () => {
   });
 
   test("Without params' functions use the same context by default", async () => {
-    //TODO: mejorar
-    const spyedFunction = jest.fn(mockNoParamsUniqueFunction);
-    const func = parallelify(spyedFunction);
-    const promise1 = func();
-    const promise2 = func();
-    const promise3 = func();
-    expect((await promise1) === (await promise2)).toBe(false);
-    expect((await promise2) === (await promise3)).toBe(false);
+    const parallelCounter = new ParallelCounter();
+    const mockFunctionWrap = parallelCounter.wrapFunction(
+      mockNoParamsUniqueFunction
+    );
+    const func = parallelify(mockFunctionWrap);
+    await Promise.all([func(), func(), func(), func()]);
+    expect(parallelCounter.getParallelCount()).toBe(1);
   });
 
   test("Original function is being called one by one (concurrency 1, same context)", async () => {
@@ -151,15 +150,15 @@ describe("Parallel Test (Default config)", () => {
     expect(spyedFunc).toBeCalledTimes(3);
   });
 
-  test("Proxy object with parallelify works", async () => {
-    //TODO: mejorar
-    const spyedFunction = jest.spyOn(mockObject, "mockFunction");
-    parallelifyObject(mockObject, "mockFunction");
+  test("Proxy object with parallelify works -> Original function is being called one by one (concurrency 1, same context)", async () => {
+    const parallelCounter = new ParallelCounter();
+    parallelCounter.wrapObject(mockObject, "mockFunction");
+    parallelifyObject(mockObject, "mockFunction", { contextKey: () => "test" });
     await Promise.all([
       mockObject.mockFunction(rn1),
-      mockObject.mockFunction(rn1),
+      mockObject.mockFunction(rn2),
       mockObject.mockFunction(rn1),
     ]);
-    expect(spyedFunction).toBeCalledTimes(3);
+    expect(parallelCounter.getParallelCount()).toBe(1);
   });
 });

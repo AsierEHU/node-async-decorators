@@ -62,7 +62,7 @@ describe("Batch Test (Default config)", () => {
     expect((await promise1) === (await promise2)).toBe(false);
   });
 
-  test("Original function (for the same context) is called more times if promise has been resolved", async () => {
+  test("Original function (for the same context) is called more times if previous batch process has been resolved", async () => {
     const spyedFunction = jest.fn(mockFunction);
     const func = batchfy(spyedFunction);
     await Promise.all([func(rn1, rn2), func(rn1, rn2), func(rn1, rn2)]);
@@ -70,7 +70,7 @@ describe("Batch Test (Default config)", () => {
     expect(spyedFunction).toBeCalledTimes(2);
   });
 
-  test("Original function (for different context) is called same times as contexts before promise has been resolved", async () => {
+  test("Original function (for different context) is called same times as contexts before previous batch process has been resolved", async () => {
     const spyedFunction = jest.fn(mockFunction);
     const func = batchfy(spyedFunction);
     await Promise.all([func(rn1, rn2), func(rn1, rn3)]);
@@ -99,7 +99,7 @@ describe("Batch Test (Default config)", () => {
     expect(spyedFunc).toBeCalledTimes(2);
   });
 
-  test("Proxy object with batch works", async () => {
+  test("Proxy object with batch works -> Original function is only called once (for the same context) until the promise has been resolved", async () => {
     const spyedFunction = jest.spyOn(mockObject, "mockFunction");
     batchfyObject(mockObject, "mockFunction");
     const promise1 = mockObject.mockFunction(rn1);
