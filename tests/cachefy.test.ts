@@ -10,30 +10,6 @@ import {
   createRedisClient,
 } from "./utils";
 
-describe("Cache Test (Default config)", () => {
-  const { cachefy, cachefyObject } = cacheWithDefaultOptions({ ttl: 1000 });
-
-  runCacheTestsSuite(cachefy, cachefyObject);
-});
-
-describe("Cache Test (Redis storage)", () => {
-  const redisClient = createRedisClient();
-  const { cachefy, cachefyObject } = cacheWithDefaultOptions({
-    ttl: 1000,
-    storage: () => new RedisCacheStorage({ redisClient }),
-  });
-
-  beforeAll(async () => {
-    await redisClient.connect();
-  });
-
-  afterAll(async () => {
-    await redisClient.disconnect();
-  });
-
-  runCacheTestsSuite(cachefy, cachefyObject);
-});
-
 const runCacheTestsSuite = (
   cachefy: ReturnType<typeof cacheWithDefaultOptions>["cachefy"],
   cachefyObject: ReturnType<typeof cacheWithDefaultOptions>["cachefyObject"]
@@ -171,3 +147,27 @@ const runCacheTestsSuite = (
     expect(spyedFunction).toBeCalledTimes(1);
   });
 };
+
+describe("Cache Test (Default config)", () => {
+  const { cachefy, cachefyObject } = cacheWithDefaultOptions({ ttl: 1000 });
+
+  runCacheTestsSuite(cachefy, cachefyObject);
+});
+
+describe("Cache Test (Redis storage)", () => {
+  const redisClient = createRedisClient();
+  const { cachefy, cachefyObject } = cacheWithDefaultOptions({
+    ttl: 1000,
+    storage: () => new RedisCacheStorage({ redisClient }),
+  });
+
+  beforeAll(async () => {
+    await redisClient.connect();
+  });
+
+  afterAll(async () => {
+    await redisClient.disconnect();
+  });
+
+  runCacheTestsSuite(cachefy, cachefyObject);
+});
