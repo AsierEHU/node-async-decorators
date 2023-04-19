@@ -2,13 +2,13 @@ import { GenericAsyncFunction } from "../../common/business/util";
 import { parallelify } from "../../parallelify";
 
 function parallelFunctionAdapter(
-  asyncFunction: GenericAsyncFunction<void, any>
+  asyncFunction: GenericAsyncFunction<void, unknown>
 ) {
   return asyncFunction();
 }
 
 export function executeInParallel(
-  asyncFunctions: GenericAsyncFunction<void, any>[],
+  asyncFunctions: GenericAsyncFunction<void, unknown>[],
   concurrency: number
 ) {
   const parallelFunction = parallelify(parallelFunctionAdapter, {

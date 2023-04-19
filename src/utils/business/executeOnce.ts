@@ -1,17 +1,20 @@
 import { cachefy } from "../../cachefy";
-import { GenericAsyncFunction, ArrayType } from "../../common/business/util";
+import {
+  GenericAsyncFunction,
+  BasicArrayType,
+} from "../../common/business/util";
 
 function buildOnceAdapter(
   asyncFunction: GenericAsyncFunction<void, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  context: ArrayType
+  context: BasicArrayType
 ) {
   return asyncFunction();
 }
 
-export const buildOnce = () => {
+export function buildOnce() {
   return cachefy(buildOnceAdapter, {
     ttl: 0,
     context: (params) => params[1],
   });
-};
+}

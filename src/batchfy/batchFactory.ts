@@ -24,7 +24,7 @@ const defaultBatchConfiguration: BatchConfiguration = {
   onError: (error: unknown) => {
     console.error(error);
   },
-  context: (params: BatchInput): Context => {
+  context: (params: BatchInput[]): Context => {
     return params;
   },
   contextKey: (context: Context): Key => {
@@ -32,7 +32,7 @@ const defaultBatchConfiguration: BatchConfiguration = {
   },
 };
 
-export const batchWithRequiredOptions = () => {
+export function batchWithRequiredOptions() {
   function batchfy<T extends BatchFunc>(
     asyncFunc: T,
     options?: BatchOptionsRequired
@@ -55,9 +55,9 @@ export const batchWithRequiredOptions = () => {
     batchfy,
     batchfyObject,
   };
-};
+}
 
-export const batchWithDefaultOptions = (options: BatchOptionsRequired) => {
+export function batchWithDefaultOptions(options: BatchOptionsRequired) {
   const defaultOptions = configBuilder(options, defaultBatchConfiguration);
 
   function batchfy<T extends BatchFunc>(asyncFunc: T, options?: BatchOptions) {
@@ -79,4 +79,4 @@ export const batchWithDefaultOptions = (options: BatchOptionsRequired) => {
     batchfy,
     batchfyObject,
   };
-};
+}

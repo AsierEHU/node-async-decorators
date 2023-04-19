@@ -6,7 +6,9 @@ export function hash(context: Context): Key {
   return key;
 }
 
-export type GenericAsyncFunction<I, O> = (...params: I[]) => Promise<O>;
+export type GenericAsyncFunction<I = any, O = any> = (
+  ...params: I[]
+) => Promise<O>;
 
 export function configBuilder<T>(
   options: Partial<T> | undefined,
@@ -24,9 +26,7 @@ export type Key = string;
 export function proxifyObject<T extends object>(
   target: T,
   methodName: keyof T,
-  proxy: (
-    targetMethod: GenericAsyncFunction<any, any>
-  ) => GenericAsyncFunction<any, any>
+  proxy: <F extends GenericAsyncFunction>(targetMethod: F) => F
 ): void {
   const asyncFunc = target[methodName];
   if (typeof asyncFunc !== "function")
@@ -36,6 +36,8 @@ export function proxifyObject<T extends object>(
 }
 
 export type BasicType = number | string | boolean | null;
-export type ArrayType = Array<BasicType>;
-export type DictionaryType = Record<string, BasicType | ArrayType>;
-export type Context = BasicType | ArrayType | DictionaryType;
+export type BasicArrayType = Array<BasicType>;
+export type BasicDictionaryType = Record<string, BasicType | BasicArrayType>;
+
+export type GenericType = BasicType | BasicArrayType | BasicDictionaryType;
+export type Context = any;

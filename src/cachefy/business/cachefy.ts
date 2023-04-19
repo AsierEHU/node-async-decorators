@@ -1,18 +1,16 @@
 import { batchfy } from "../../batchfy";
 import {
-  ArrayType,
-  BasicType,
   Context,
-  DictionaryType,
   GenericAsyncFunction,
   Key,
+  GenericType,
 } from "../../common/business/util";
 
 /**
  * Types and default configuration
  */
 export type CacheInput = any;
-export type CacheOutput = BasicType | ArrayType | DictionaryType;
+export type CacheOutput = GenericType;
 export interface CacheStorage {
   get(key: Key): Promise<{ value: CacheOutput | undefined; found: boolean }>;
   set(key: Key, value: CacheOutput, ttl: number): Promise<void>;
@@ -21,7 +19,7 @@ export interface CacheStorage {
 export interface CacheConfiguration {
   storage(): CacheStorage;
   onError(error: unknown): void;
-  context(params: CacheInput): Context;
+  context(params: CacheInput[]): Context;
   contextKey(context: Context): Key;
   ttl: number;
 }

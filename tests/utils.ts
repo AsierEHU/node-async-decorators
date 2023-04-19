@@ -2,21 +2,22 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import { createClient } from "redis";
-import { proxifyObject } from "../src/common/business/util";
+import {
+  GenericAsyncFunction,
+  proxifyObject,
+} from "../src/common/business/util";
 
 /**
  * Utils
  */
 
-// jest.useFakeTimers()
-export const wait = (time: number): Promise<void> => {
+export function wait(time: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve();
     }, time);
-    // jest.runAllTimers()
   });
-};
+}
 
 let count = 0;
 export function uniqueNumber() {
@@ -32,8 +33,8 @@ export class ParallelCounter {
     this.activeFunctionsHistorical = [];
   }
 
-  public wrapFunction(asyncFunc: any) {
-    const wrap = (...params: any[]) => {
+  public wrapFunction<F extends GenericAsyncFunction>(asyncFunc: F) {
+    const wrap = ((...params) => {
       const originalPromise = asyncFunc(...params);
       this.activeFunctions++;
       this.activeFunctionsHistorical.push(this.activeFunctions);
@@ -42,8 +43,8 @@ export class ParallelCounter {
         this.activeFunctionsHistorical.push(this.activeFunctions);
       });
       return originalPromise;
-    };
-    return wrap;
+    }) as F;
+    return wrap as F;
   }
 
   public wrapObject<T extends object>(target: T, methodName: keyof T) {
@@ -65,29 +66,31 @@ export class ParallelCounter {
  * Mocks
  */
 
-export const mockFunction = (
+export function mockFunction(
   number1: number,
   number2: number
-): Promise<number> => {
+): Promise<number> {
   return new Promise((resolve) => {
     resolve(number1 + number2);
   });
-};
+}
 
-export const mockNoParamsUniqueFunction = (): Promise<number> => {
+export function mockNoParamsUniqueFunction(): Promise<number> {
   return new Promise((resolve) => {
     resolve(uniqueNumber());
   });
-};
+}
 
-export const mockErrorFunction = (
+export function mockErrorFunction(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   number1: number,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   number2: number
-): Promise<number> => {
+): Promise<number> {
   return new Promise((resolve, reject) => {
-    reject(number1 + number2);
+    reject(new Error("mock error"));
   });
-};
+}
 
 class MockObject {
   private number = 3;
@@ -101,7 +104,7 @@ export const mockObject = new MockObject();
  * Factories
  */
 
-export const createRedisClient = () => {
+export function createRedisClient() {
   const redisClient = createClient({
     password: process.env.REDIS_PASSWORD || "",
     socket: {
@@ -112,8 +115,8 @@ export const createRedisClient = () => {
   redisClient.on("connect", () => {
     console.log("Connected to our redis instance!");
   });
-  redisClient.on("error", (err: any) => {
+  redisClient.on("error", (err: unknown) => {
     console.error("Redis Client Error", err);
   });
   return redisClient;
-};
+}

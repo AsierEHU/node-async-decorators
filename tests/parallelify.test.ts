@@ -25,20 +25,14 @@ describe("Parallel Test (Default config)", () => {
   });
 
   test("Parallelifyed function returns expected exception results", async () => {
-    const func = parallelify(mockErrorFunction);
-    let errorReal: unknown = null;
+    expect.assertions(1);
+    const parallelifyedFunc = parallelify(mockErrorFunction);
     try {
       await mockErrorFunction(rn1, rn2);
-    } catch (e) {
-      errorReal = e;
+    } catch (e: unknown) {
+      if (e instanceof Error)
+        await expect(parallelifyedFunc(rn1, rn2)).rejects.toThrow(e);
     }
-    let errorBatched: unknown = null;
-    try {
-      await func(rn1, rn2);
-    } catch (e) {
-      errorBatched = e;
-    }
-    expect(errorBatched).toEqual(errorReal);
   });
 
   test("Original function has been called as many times as the elements in the queue when the queue is finished", async () => {
@@ -54,8 +48,8 @@ describe("Parallel Test (Default config)", () => {
     const promise1 = func(rn1, rn2);
     const promise2 = func(rn1, rn2);
     const promise3 = func(rn1, rn2);
-    expect((await promise1) === (await promise2)).toBe(true);
-    expect((await promise2) === (await promise3)).toBe(true);
+    expect(await promise1).toBe(await promise2);
+    expect(await promise2).toBe(await promise3);
   });
 
   test("Parallelified function returns different result after the queue process finished in every call (for different context)", async () => {
@@ -63,7 +57,7 @@ describe("Parallel Test (Default config)", () => {
     const func = parallelify(spyedFunction);
     const promise1 = func(rn1, rn2);
     const promise2 = func(rn1, rn3);
-    expect((await promise1) === (await promise2)).toBe(false);
+    expect(await promise1).not.toBe(await promise2);
   });
 
   test("Without params' functions use the same context by default", async () => {

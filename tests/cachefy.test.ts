@@ -26,20 +26,14 @@ const runCacheTestsSuite = (
   });
 
   test("Cached function returns expected exception results", async () => {
-    const func = cachefy(mockErrorFunction);
-    let errorReal: unknown = null;
+    expect.assertions(1);
+    const cachefiedFunc = cachefy(mockErrorFunction);
     try {
       await mockErrorFunction(rn1, rn2);
-    } catch (e) {
-      errorReal = e;
+    } catch (e: unknown) {
+      if (e instanceof Error)
+        await expect(cachefiedFunc(rn1, rn2)).rejects.toThrow(e);
     }
-    let errorCached: unknown = null;
-    try {
-      await func(rn1, rn2);
-    } catch (e) {
-      errorCached = e;
-    }
-    expect(errorCached).toEqual(errorReal);
   });
 
   test("Original function is only called once (for the same context) until the promise has been resolved", async () => {
@@ -55,8 +49,8 @@ const runCacheTestsSuite = (
     const promise1 = func(rn1, rn2);
     const promise2 = func(rn1, rn2);
     const promise3 = func(rn1, rn2);
-    expect((await promise1) === (await promise2)).toBe(true);
-    expect((await promise2) === (await promise3)).toBe(true);
+    expect(await promise1).toBe(await promise2);
+    expect(await promise2).toBe(await promise3);
   });
 
   test("Cached function returns different result after the batching process finished in every call (for different context)", async () => {
@@ -64,7 +58,7 @@ const runCacheTestsSuite = (
     const func = cachefy(spyedFunction);
     const promise1 = func(rn1, rn2);
     const promise2 = func(rn1, rn3);
-    expect((await promise1) === (await promise2)).toBe(false);
+    expect(await promise1).not.toBe(await promise2);
   });
 
   test("Original function is only called once (for the same context) until the TTL has expired", async () => {
@@ -100,8 +94,8 @@ const runCacheTestsSuite = (
     const promise1 = func();
     const promise2 = func();
     const promise3 = func();
-    expect((await promise1) === (await promise2)).toBe(true);
-    expect((await promise2) === (await promise3)).toBe(true);
+    expect(await promise1).toBe(await promise2);
+    expect(await promise2).toBe(await promise3);
   });
 
   test("Storage is only called twice (for the same context) until the TTL has expired", async () => {

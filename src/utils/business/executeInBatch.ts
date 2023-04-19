@@ -1,7 +1,7 @@
 import { GenericAsyncFunction } from "../../common/business/util";
 
 export async function executeInBatch(
-  asyncFunctions: GenericAsyncFunction<void, any>[],
+  asyncFunctions: GenericAsyncFunction<void, unknown>[],
   batchSize: number
 ) {
   if (batchSize <= 0) throw new Error("batchSize must be a positive integer");

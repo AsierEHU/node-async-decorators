@@ -26,7 +26,7 @@ const defaultParallelConfiguration: ParallelConfiguration = {
   onError: (error: unknown) => {
     console.error(error);
   },
-  context: (params: ParallelInput): Context => {
+  context: (params: ParallelInput[]): Context => {
     return params;
   },
   contextKey: (context: Context): Key => {
@@ -34,7 +34,7 @@ const defaultParallelConfiguration: ParallelConfiguration = {
   },
 };
 
-export const parallelWithRequiredOptions = () => {
+export function parallelWithRequiredOptions() {
   function parallelify<T extends ParallelFunc>(
     asyncFunc: T,
     options: ParallelOptionsRequired
@@ -57,11 +57,9 @@ export const parallelWithRequiredOptions = () => {
     parallelify,
     parallelifyObject,
   };
-};
+}
 
-export const parallelWithDefaultOptions = (
-  options: ParallelOptionsRequired
-) => {
+export function parallelWithDefaultOptions(options: ParallelOptionsRequired) {
   const defaultOptions = configBuilder(options, defaultParallelConfiguration);
 
   function parallelify<T extends ParallelFunc>(
@@ -86,4 +84,4 @@ export const parallelWithDefaultOptions = (
     parallelify,
     parallelifyObject,
   };
-};
+}

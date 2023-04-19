@@ -25,7 +25,7 @@ const defaultCacheConfiguration: CacheConfiguration = {
   onError: (error: unknown) => {
     console.error(error);
   },
-  context: (params: CacheInput): Context => {
+  context: (params: CacheInput[]): Context => {
     return params;
   },
   contextKey: (context: Context): Key => {
@@ -34,7 +34,7 @@ const defaultCacheConfiguration: CacheConfiguration = {
   ttl: 1000,
 };
 
-export const cacheWithRequiredOptions = () => {
+export function cacheWithRequiredOptions() {
   function cachefy<T extends CacheFunc>(
     asyncFunc: T,
     options: CacheOptionsRequired
@@ -57,9 +57,9 @@ export const cacheWithRequiredOptions = () => {
     cachefy,
     cachefyObject,
   };
-};
+}
 
-export const cacheWithDefaultOptions = (options: CacheOptionsRequired) => {
+export function cacheWithDefaultOptions(options: CacheOptionsRequired) {
   const defaultOptions = configBuilder(options, defaultCacheConfiguration);
 
   function cachefy<T extends CacheFunc>(asyncFunc: T, options?: CacheOptions) {
@@ -81,4 +81,4 @@ export const cacheWithDefaultOptions = (options: CacheOptionsRequired) => {
     cachefy,
     cachefyObject,
   };
-};
+}

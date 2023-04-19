@@ -18,7 +18,7 @@ export interface TaskQueueRunnerStorage {
 export interface ParallelConfiguration {
   storage(): TaskQueueRunnerStorage;
   onError(error: unknown): void;
-  context(params: ParallelInput): Context;
+  context(params: ParallelInput[]): Context;
   contextKey(context: Context): Key;
   concurrency: number;
 }

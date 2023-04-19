@@ -18,20 +18,16 @@ describe("Execute once Test", () => {
   });
 
   test("Execute once function returns expected exception results", async () => {
+    expect.assertions(1);
     const once = buildOnce();
-    let errorReal: unknown = null;
     try {
       await mockErrorFunction(rn1, rn2);
-    } catch (e) {
-      errorReal = e;
+    } catch (e: unknown) {
+      if (e instanceof Error)
+        await expect(
+          once(() => mockErrorFunction(rn1, rn2), [])
+        ).rejects.toThrow(e);
     }
-    let errorOnce: unknown = null;
-    try {
-      await once(() => mockErrorFunction(rn1, rn2), []);
-    } catch (e) {
-      errorOnce = e;
-    }
-    expect(errorOnce).toEqual(errorReal);
   });
 
   test("Original function is only called once (for the same context)", async () => {
@@ -71,23 +67,17 @@ describe("Execute in parallel Test", () => {
   });
 
   test("Execute in parallel function returns expected exception results", async () => {
+    expect.assertions(1);
     const tasks = [
       () => mockFunction(rn1, rn2),
       () => mockErrorFunction(rn1, rn2),
     ];
-    let errorReal: unknown = null;
     try {
       await Promise.all(tasks.map((task) => task()));
-    } catch (e) {
-      errorReal = e;
+    } catch (e: unknown) {
+      if (e instanceof Error)
+        await expect(executeInParallel(tasks, 2)).rejects.toThrow(e);
     }
-    let error: unknown = null;
-    try {
-      await executeInParallel(tasks, 2);
-    } catch (e) {
-      error = e;
-    }
-    expect(error).toEqual(errorReal);
   });
 
   test("The max number of running tasks at the same time is 2", async () => {
@@ -121,23 +111,17 @@ describe("Execute in batch Test", () => {
   });
 
   test("Execute in batch function returns expected exception results", async () => {
+    expect.assertions(1);
     const tasks = [
       () => mockFunction(rn1, rn2),
       () => mockErrorFunction(rn1, rn2),
     ];
-    let errorReal: unknown = null;
     try {
       await Promise.all(tasks.map((task) => task()));
-    } catch (e) {
-      errorReal = e;
+    } catch (e: unknown) {
+      if (e instanceof Error)
+        await expect(executeInBatch(tasks, 2)).rejects.toThrow(e);
     }
-    let error: unknown = null;
-    try {
-      await executeInBatch(tasks, 2);
-    } catch (e) {
-      error = e;
-    }
-    expect(error).toEqual(errorReal);
   });
 
   test("The max number of running tasks is 2 at the same time", async () => {
