@@ -1,4 +1,4 @@
-import { GenericAsyncFunction } from "../../common/business/util";
+import { GenericAsyncFunction } from "../../common";
 import { parallelify } from "../../parallelify";
 
 function parallelFunctionAdapter(

@@ -1,5 +1,5 @@
-import { CacheOutput, CacheStorage } from "../business/cachefy";
-import { Key } from "../../common/business/util";
+import { CacheOutput, CacheStorage } from "../business/interfaces";
+import { Key } from "../../common";
 
 export class LocalCacheStorage implements CacheStorage {
   private readonly storage: Record<Key, CacheOutput>;

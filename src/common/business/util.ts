@@ -1,14 +1,12 @@
 import hasher from "node-object-hash";
+import { Context, Key, GenericAsyncFunction } from "./interfaces";
+
 const hashSortCoerce = hasher({ coerce: false, sort: false });
 
 export function hash(context: Context): Key {
   const key = hashSortCoerce.hash(context);
   return key;
 }
-
-export type GenericAsyncFunction<I = any, O = any> = (
-  ...params: I[]
-) => Promise<O>;
 
 export function configBuilder<T>(
   options: Partial<T> | undefined,
@@ -21,8 +19,6 @@ export function configBuilder<T>(
   };
 }
 
-export type Key = string;
-
 export function proxifyObject<T extends object>(
   target: T,
   methodName: keyof T,
@@ -34,10 +30,3 @@ export function proxifyObject<T extends object>(
   const proxyfiedFunction = proxy(asyncFunc.bind(target));
   target[methodName] = proxyfiedFunction as T[keyof T];
 }
-
-export type BasicType = number | string | boolean | null;
-export type BasicArrayType = Array<BasicType>;
-export type BasicDictionaryType = Record<string, BasicType | BasicArrayType>;
-
-export type GenericType = BasicType | BasicArrayType | BasicDictionaryType;
-export type Context = any;

@@ -1,17 +1,11 @@
-import {
-  Context,
-  Key,
-  hash,
-  configBuilder,
-  proxifyObject,
-} from "../common/business/util";
+import { Context, Key, hash, configBuilder, proxifyObject } from "../common";
+import { parallelify as baseParallelify } from "./business/parallelify";
 import {
   ParallelConfiguration,
   ParallelFunc,
   ParallelInput,
   TaskQueueRunnerStorage,
-  parallelify as baseParallelify,
-} from "./business/parallelify";
+} from "./business/interfaces";
 import { LocalTaskQueueRunnerStorage } from "./dataAccess/localTaskQueueRunnerStorage";
 
 export type ParallelOptions = Partial<ParallelConfiguration>;
@@ -34,29 +28,22 @@ const defaultParallelConfiguration: ParallelConfiguration = {
   },
 };
 
-export function parallelWithRequiredOptions() {
-  function parallelify<T extends ParallelFunc>(
-    asyncFunc: T,
-    options: ParallelOptionsRequired
-  ) {
-    const conf = configBuilder(options, defaultParallelConfiguration);
-    return baseParallelify(asyncFunc, conf);
-  }
+export function parallelify<T extends ParallelFunc>(
+  asyncFunc: T,
+  options: ParallelOptionsRequired
+) {
+  const conf = configBuilder(options, defaultParallelConfiguration);
+  return baseParallelify(asyncFunc, conf);
+}
 
-  function parallelifyObject<T extends object>(
-    target: T,
-    methodName: keyof T,
-    options: ParallelOptionsRequired
-  ) {
-    return proxifyObject(target, methodName, (asyncFunc) => {
-      return parallelify(asyncFunc, options);
-    });
-  }
-
-  return {
-    parallelify,
-    parallelifyObject,
-  };
+export function parallelifyObject<T extends object>(
+  target: T,
+  methodName: keyof T,
+  options: ParallelOptionsRequired
+) {
+  return proxifyObject(target, methodName, (asyncFunc) => {
+    return parallelify(asyncFunc, options);
+  });
 }
 
 export function parallelWithDefaultOptions(options: ParallelOptionsRequired) {

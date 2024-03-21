@@ -1,17 +1,11 @@
+import { Context, Key, hash, configBuilder, proxifyObject } from "../common";
+import { cachefy as baseCachefy } from "./business/cachefy";
 import {
-  Context,
-  Key,
-  hash,
-  configBuilder,
-  proxifyObject,
-} from "../common/business/util";
-import {
-  cachefy as baseCachefy,
   CacheInput,
   CacheFunc,
   CacheConfiguration,
   CacheStorage,
-} from "./business/cachefy";
+} from "./business/interfaces";
 import { LocalCacheStorage } from "./dataAccess/localCacheStorage";
 
 export type CacheOptions = Partial<CacheConfiguration>;
@@ -34,29 +28,22 @@ const defaultCacheConfiguration: CacheConfiguration = {
   ttl: 1000,
 };
 
-export function cacheWithRequiredOptions() {
-  function cachefy<T extends CacheFunc>(
-    asyncFunc: T,
-    options: CacheOptionsRequired
-  ) {
-    const conf = configBuilder(options, defaultCacheConfiguration);
-    return baseCachefy(asyncFunc, conf);
-  }
+export function cachefy<T extends CacheFunc>(
+  asyncFunc: T,
+  options: CacheOptionsRequired
+) {
+  const conf = configBuilder(options, defaultCacheConfiguration);
+  return baseCachefy(asyncFunc, conf);
+}
 
-  function cachefyObject<T extends object>(
-    target: T,
-    methodName: keyof T,
-    options: CacheOptionsRequired
-  ) {
-    return proxifyObject(target, methodName, (asyncFunc) => {
-      return cachefy(asyncFunc, options);
-    });
-  }
-
-  return {
-    cachefy,
-    cachefyObject,
-  };
+export function cachefyObject<T extends object>(
+  target: T,
+  methodName: keyof T,
+  options: CacheOptionsRequired
+) {
+  return proxifyObject(target, methodName, (asyncFunc) => {
+    return cachefy(asyncFunc, options);
+  });
 }
 
 export function cacheWithDefaultOptions(options: CacheOptionsRequired) {

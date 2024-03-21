@@ -2,10 +2,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import { createClient } from "redis";
-import {
-  GenericAsyncFunction,
-  proxifyObject,
-} from "../src/common/business/util";
+import { GenericAsyncFunction, proxifyObject } from "../src/common";
 
 /**
  * Utils

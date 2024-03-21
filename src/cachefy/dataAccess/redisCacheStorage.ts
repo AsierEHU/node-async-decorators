@@ -1,7 +1,7 @@
 import { createClient } from "redis";
 import { v4 as uuidv4 } from "uuid";
-import { CacheOutput, CacheStorage } from "../business/cachefy";
-import { Key } from "../../common/business/util";
+import { CacheOutput, CacheStorage } from "../business/interfaces";
+import { Key } from "../../common";
 
 export class RedisCacheStorage implements CacheStorage {
   private readonly client: ReturnType<typeof createClient>;

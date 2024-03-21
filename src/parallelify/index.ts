@@ -1,9 +1,15 @@
 import {
-  parallelWithRequiredOptions,
+  parallelify,
+  parallelifyObject,
   parallelWithDefaultOptions,
   ParallelOptions,
   ParallelOptionsRequired,
 } from "./parallelFactory";
 
-export const { parallelify, parallelifyObject } = parallelWithRequiredOptions();
-export { parallelWithDefaultOptions, ParallelOptions, ParallelOptionsRequired };
+export {
+  parallelify,
+  parallelifyObject,
+  parallelWithDefaultOptions,
+  ParallelOptions,
+  ParallelOptionsRequired,
+};

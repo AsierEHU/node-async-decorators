@@ -148,20 +148,22 @@ describe("Cache Test (Default config)", () => {
   runCacheTestsSuite(cachefy, cachefyObject);
 });
 
-describe("Cache Test (Redis storage)", () => {
-  const redisClient = createRedisClient();
-  const { cachefy, cachefyObject } = cacheWithDefaultOptions({
-    ttl: 1000,
-    storage: () => new RedisCacheStorage({ redisClient }),
-  });
+// TODO: move to integration tests
 
-  beforeAll(async () => {
-    await redisClient.connect();
-  });
+// describe("Cache Test (Redis storage)", () => {
+//   const redisClient = createRedisClient();
+//   const { cachefy, cachefyObject } = cacheWithDefaultOptions({
+//     ttl: 1000,
+//     storage: () => new RedisCacheStorage({ redisClient }),
+//   });
 
-  afterAll(async () => {
-    await redisClient.disconnect();
-  });
+//   beforeAll(async () => {
+//     await redisClient.connect();
+//   });
 
-  runCacheTestsSuite(cachefy, cachefyObject);
-});
+//   afterAll(async () => {
+//     await redisClient.disconnect();
+//   });
+
+//   runCacheTestsSuite(cachefy, cachefyObject);
+// });

@@ -1,8 +1,7 @@
-import {
-  TaskQueueRunner,
-  TaskQueueRunnerStorage,
-} from "../business/parallelify";
-import { Key } from "../../common/business/util";
+import { TaskQueueRunner } from "../business/taskQueueRunner";
+import { TaskQueueRunnerStorage } from "../business/interfaces";
+
+import { Key } from "../../common";
 
 export class LocalTaskQueueRunnerStorage implements TaskQueueRunnerStorage {
   private readonly storage: Record<Key, TaskQueueRunner>;

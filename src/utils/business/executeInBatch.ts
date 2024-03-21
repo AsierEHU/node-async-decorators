@@ -1,4 +1,4 @@
-import { GenericAsyncFunction } from "../../common/business/util";
+import { GenericAsyncFunction } from "../../common";
 
 export async function executeInBatch(
   asyncFunctions: GenericAsyncFunction<void, unknown>[],

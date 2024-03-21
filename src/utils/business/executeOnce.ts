@@ -1,8 +1,5 @@
 import { cachefy } from "../../cachefy";
-import {
-  GenericAsyncFunction,
-  BasicArrayType,
-} from "../../common/business/util";
+import { GenericAsyncFunction, BasicArrayType } from "../../common";
 
 function buildOnceAdapter(
   asyncFunction: GenericAsyncFunction<void, any>,

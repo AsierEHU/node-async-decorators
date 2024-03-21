@@ -1,5 +1,5 @@
-import { Key } from "../../common/business/util";
-import { BatchOutput, BatchStorage } from "../business/batchfy";
+import { Key } from "../../common";
+import { BatchOutput, BatchStorage } from "../business/interfaces";
 
 export class LocalBatchStorage implements BatchStorage {
   private readonly storage: Record<Key, Promise<BatchOutput>>;
